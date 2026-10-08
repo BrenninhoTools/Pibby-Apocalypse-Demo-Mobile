@@ -31,8 +31,8 @@ class TouchPoint
 
 class TouchInput
 {
-	public static inline var TAP_MAX_TIME:Float = 0.3;
-	public static inline var TAP_MAX_DISTANCE:Float = 28;
+	public static inline var TAP_MAX_TIME:Float = 0.35;
+	public static inline var TAP_MAX_DISTANCE:Float = 36;
 	public static inline var SWIPE_STEP:Float = 80;
 
 	public static var points(default, null):Array<TouchPoint> = [];
@@ -65,6 +65,7 @@ class TouchInput
 	public static var acceptTap(get, never):Bool;
 
 	static var initialized:Bool = false;
+	static var seen:Array<Int> = [];
 
 	public static function init():Void
 	{
@@ -112,7 +113,7 @@ class TouchInput
 
 		var state = FlxG.state;
 		var gestures:Bool = !(gameplay && state != null && state.subState == null);
-		var seen:Array<Int> = [];
+		seen.resize(0);
 
 		for (touch in FlxG.touches.list)
 		{
@@ -128,9 +129,6 @@ class TouchInput
 				point = new TouchPoint(id, touch.screenX, touch.screenY);
 				point.onButton = pressButtons(point);
 				point.eligible = gameplay && !point.onButton && state != null && state.subState == null;
-				#if TOUCH_DEBUG
-				trace("TOUCHDBG down " + point.x + "," + point.y + " onButton=" + point.onButton + " eligible=" + point.eligible);
-				#end
 				points.push(point);
 			}
 
@@ -149,9 +147,6 @@ class TouchInput
 				if (!point.onButton && gestures && !point.swiped && point.travelled <= TAP_MAX_DISTANCE && point.heldTime <= TAP_MAX_TIME)
 				{
 					tap = true;
-					#if TOUCH_DEBUG
-					trace("TOUCHDBG tap " + point.x + "," + point.y);
-					#end
 					tapX = point.x;
 					tapY = point.y;
 				}
@@ -206,9 +201,6 @@ class TouchInput
 				swipeRight = true;
 
 			swipeStepsX += direction * steps;
-			#if TOUCH_DEBUG
-			trace("TOUCHDBG swipeX " + (direction * steps));
-			#end
 			point.swiped = true;
 			point.anchorX += direction * steps * SWIPE_STEP;
 			point.anchorY = point.y;

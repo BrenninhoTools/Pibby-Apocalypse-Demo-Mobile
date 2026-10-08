@@ -11,6 +11,7 @@ class MobileHitbox extends FlxBasic
 	public var enabled:Bool = false;
 	public var held(default, null):Array<Bool> = [];
 
+	var down:Array<Bool> = [];
 	var pressCallback:Int->Void;
 	var releaseCallback:Int->Void;
 
@@ -22,12 +23,16 @@ class MobileHitbox extends FlxBasic
 		visible = false;
 
 		for (i in 0...COLUMNS)
+		{
 			held.push(false);
+			down.push(false);
+		}
 	}
 
 	public function poll():Void
 	{
-		var down:Array<Bool> = [for (i in 0...COLUMNS) false];
+		for (i in 0...COLUMNS)
+			down[i] = false;
 
 		if (enabled)
 		{

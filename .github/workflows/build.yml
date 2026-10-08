@@ -40,6 +40,8 @@ jobs:
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools
 
       - name: Setup Android NDK
         id: ndk
@@ -49,6 +51,14 @@ jobs:
 
       - name: Install Android packages
         run: sdkmanager "platforms;android-33" "build-tools;33.0.2"
+
+      - name: Add NDK strip aliases
+        run: |
+          NDK_BIN="${{ steps.ndk.outputs.ndk-path }}/toolchains/llvm/prebuilt/linux-x86_64/bin"
+          for TRIPLE in aarch64-linux-android armv7a-linux-androideabi arm-linux-androideabi x86_64-linux-android i686-linux-android; do
+            ln -sf "$NDK_BIN/llvm-strip" "$NDK_BIN/$TRIPLE-strip"
+          done
+          echo "$NDK_BIN" >> "$GITHUB_PATH"
 
       - name: Install Haxe libraries
         run: |

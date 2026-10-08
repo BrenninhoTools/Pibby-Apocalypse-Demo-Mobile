@@ -110,7 +110,9 @@ class FreeplayState extends MusicBeatState
 		FlxG.camera.filtersEnabled = true;
 		pibbyFNF = new Shaders.Pibbified();
 
+		#if !mobile
 		if (ClientPrefs.shaders) FlxG.camera.setFilters([new ShaderFilter(pibbyFNF)]);
+		#end
 
 		Conductor.bpm = 100;
 
@@ -171,6 +173,11 @@ class FreeplayState extends MusicBeatState
 		threat.antialiasing = ClientPrefs.globalAntialiasing;
 		add(threat);
 		threat.screenCenter();
+
+		#if mobile
+		for (song in songs)
+			Paths.image('fpmenu/stage/' + song.songName, null, true);
+		#end
 
 		image = new FlxSprite().loadGraphic(Paths.image('fpmenu/stage/' + songs[curSelected].songName));
 		image.antialiasing = ClientPrefs.globalAntialiasing;
@@ -761,12 +768,18 @@ class FreeplayState extends MusicBeatState
 		songText.revive();
 		songText.resetText(songs[curSelected].songName.toUpperCase());
 		songText.start(0.1, true);
+		#if mobile
+		songText.skip();
+		#end
 		songText.alpha = 1;
 		songText.completeCallback = function() {
 			artistText.alpha = 1;
 			artistText.revive();
 			artistText.resetText(CoolUtil.getSongArtist(songs[curSelected].songName).toUpperCase());
 			artistText.start(0.05, true);
+			#if mobile
+			artistText.skip();
+			#end
 		};
 
 		image.loadGraphic(Paths.image('fpmenu/stage/' + songs[curSelected].songName));
