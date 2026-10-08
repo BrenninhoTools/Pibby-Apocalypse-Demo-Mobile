@@ -188,9 +188,7 @@ class GreenReplacementShader extends FlxShader { // green screen and replaces th
 class MAWVHS extends FlxShader {
     @:glFragmentSource('
     #pragma header
-    vec2 uv = openfl_TextureCoordv.xy;
-    vec2 fragCoord = openfl_TextureCoordv*openfl_TextureSize;
-    vec2 iResolution = openfl_TextureSize;
+    #define iResolution openfl_TextureSize
     uniform float iTime;
     #define iChannel0 bitmap
     #define iChannel1 bitmap
@@ -482,7 +480,9 @@ void main()
 	var topPrefix:String = "";
 
 	public function new() {
+		#if !mobile
 		topPrefix = "#version 120\n\n";
+		#end
 		__glSourceDirty = true;
 
 		super();
@@ -623,7 +623,7 @@ class ReflectionShader extends FlxShader
   
     #pragma header
 
-    uniform float reflectionY = 0.36;
+    uniform float reflectionY;
 
 
     vec4 color = vec4(1.0);
@@ -660,6 +660,7 @@ class Pibbified extends FlxShader
     uniform float uTime;
     uniform float iMouseX;
     uniform int NUM_SAMPLES;
+    const int MAX_SAMPLES = 16;
     uniform float glitchMultiply;
     
     float sat( float t ) {
@@ -752,8 +753,9 @@ class Pibbified extends FlxShader
         
         vec4 sum = vec4(0.0);
         vec3 wsum = vec3(0.0);
-        for( int i=0; i<NUM_SAMPLES; ++i )
+        for( int i=0; i<MAX_SAMPLES; ++i )
         {
+            if (i >= NUM_SAMPLES) break;
             float t = float(i) * RCP_NUM_SAMPLES_F;
             uv.x = sat( uv.x + ofs * t );
             vec4 samplecol = texture2D( bitmap, uv );
@@ -966,9 +968,7 @@ class PincushionShader extends FlxShader
   @:glFragmentSource('    
   #pragma header
 
-  vec2 uv = openfl_TextureCoordv.xy;
-  vec2 fragCoord = openfl_TextureCoordv*openfl_TextureSize;
-  vec2 iResolution = openfl_TextureSize;
+  #define iResolution openfl_TextureSize
   uniform float iTime;
   uniform float Size;
   #define iChannel0 bitmap
@@ -980,6 +980,7 @@ class PincushionShader extends FlxShader
   //Inspired by http://stackoverflow.com/questions/6030814/add-fisheye-effect-to-images-at-runtime-using-opengl-es
   void main()
   {
+      vec2 fragCoord = openfl_TextureCoordv * openfl_TextureSize;
       vec2 p = fragCoord.xy / iResolution.x;//normalized coords with some cheat
                                                                //(assume 1:1 prop)
       float prop = iResolution.x / iResolution.y;//screen proroption
@@ -1029,9 +1030,9 @@ class BlurShader extends FlxShader
 
 uniform float iTime;
 
-vec2 iResolution = openfl_TextureSize;
+#define iResolution openfl_TextureSize
 
-uniform float amount = 0.5;
+uniform float amount;
 
 const float pi = radians(180.);
 const int samples = 20;
@@ -1047,7 +1048,7 @@ float gaussian(vec2 i) {
 }
 
 vec3 blur(sampler2D sp, vec2 uv, vec2 scale) {
-    vec2 offset;
+    vec2 offset = vec2(0.0);
     float weight = gaussian(offset);
     vec3 col = texture2D(sp, uv).rgb * weight;
     float accum = weight * amount;
@@ -1144,19 +1145,27 @@ class OldTVShader extends FlxShader
     @:glFragmentSource('
         #pragma header
         #define id vec2(0.,1.)
-        #define k 1103515245U
         #define PI 3.141592653
         #define TAU PI * 2.
 
         uniform float iTime;
 
-        //prng func, from https://stackoverflow.com/a/52207531
+        #ifdef GL_ES
+        #define uvec3 vec3
+        vec3 hash(vec3 x) {
+            x = fract(x * vec3(0.1031, 0.1030, 0.0973));
+            x += dot(x, x.yxz + 33.33);
+            return fract((x.xxy + x.yxx) * x.zyx);
+        }
+        #else
+        #define k 1103515245U
         vec3 hash(uvec3 x) {
             x = ((x>>8U)^x.yzx)*k;
             x = ((x>>8U)^x.yzx)*k;
-            x = ((x>>8U)^x.yzx)*k;         
+            x = ((x>>8U)^x.yzx)*k;
             return vec3(x)*(1.0/float(0xffffffffU));
         }
+        #endif
 
         void main() {
             bool flag = false;
@@ -1192,9 +1201,9 @@ class OldTVShader extends FlxShader
             vec4 col = flixel_texture2D(bitmap, uv);
             
             //blur, from https://www.shadertoy.com/view/Xltfzj
-            float directions = 16.0;
-            float quality = 3.0;
-            float size = 4.0;
+            const float directions = 16.0;
+            const float quality = 3.0;
+            const float size = 4.0;
 
             vec2 radius = size / openfl_TextureSize;
             for(float d = 0.0; d < TAU; d += TAU / directions) {
