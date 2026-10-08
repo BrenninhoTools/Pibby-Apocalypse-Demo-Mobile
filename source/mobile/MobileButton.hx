@@ -12,7 +12,7 @@ enum MobileButtonType
 class MobileButton extends FlxSprite
 {
 	public static inline var MARGIN:Float = 16;
-	public static inline var HIT_PADDING:Float = 24;
+	public static inline var HIT_PADDING:Float = 30;
 
 	public var type(default, null):MobileButtonType;
 	public var inSubState(default, null):Bool;
@@ -24,7 +24,7 @@ class MobileButton extends FlxSprite
 		this.inSubState = inSubState;
 
 		var prefix:String = 'back';
-		var targetSize:Float = 118;
+		var targetSize:Float = 150;
 		switch (type)
 		{
 			case BACK:

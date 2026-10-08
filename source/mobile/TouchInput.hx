@@ -270,7 +270,7 @@ class TouchInput
 		return horizontalNav && swipeRight;
 
 	static inline function get_acceptTap():Bool
-		return tap && tapAccepts && !gameplay;
+		return tap && tapAccepts;
 }
 
 class TouchInputPlugin extends FlxBasic

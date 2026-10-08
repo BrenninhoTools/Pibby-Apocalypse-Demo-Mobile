@@ -14,6 +14,10 @@ import flixel.tweens.FlxTween;
 import flixel.util.FlxColor;
 import flixel.FlxCamera;
 import flixel.util.FlxStringUtil;
+#if mobile
+import mobile.MobileButton;
+import mobile.TouchInput;
+#end
 
 class PauseSubState extends MusicBeatSubstate
 {
@@ -119,6 +123,12 @@ class PauseSubState extends MusicBeatSubstate
 		add(grpMenuShit);
 
 		regenMenu();
+
+		#if mobile
+		TouchInput.tapAccepts = false;
+		add(new MobileButton(MobileButtonType.BACK, true));
+		#end
+
 		cameras = [FlxG.cameras.list[FlxG.cameras.list.length - 1]];
 	}
 
@@ -136,6 +146,27 @@ class PauseSubState extends MusicBeatSubstate
 		var upP = controls.UI_UP_P;
 		var downP = controls.UI_DOWN_P;
 		var accepted = controls.ACCEPT;
+
+		#if mobile
+		for (i in 0...grpMenuShit.members.length)
+		{
+			if (TouchInput.tapOver(grpMenuShit.members[i], 16))
+			{
+				if (i == curSelected)
+					accepted = true;
+				else
+					changeSelection(i - curSelected);
+				break;
+			}
+		}
+
+		if (controls.BACK && cantUnpause <= 0)
+		{
+			options = false;
+			close();
+			return;
+		}
+		#end
 
 		if (upP)
 		{
@@ -286,6 +317,9 @@ class PauseSubState extends MusicBeatSubstate
 
 	override function destroy()
 	{
+		#if mobile
+		TouchInput.tapAccepts = true;
+		#end
 		pauseMusic.destroy();
 
 		super.destroy();
