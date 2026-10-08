@@ -151,10 +151,17 @@ class FreeplayState extends MusicBeatState
 		new FlxTimer().start(0.5, grah -> canPress = true);
 
 		bg = new FlxSprite();
+        #if mobile
+        bg.frames = Paths.getSparrowAtlas('fpmenu/background_mobile');
+        #else
         bg.frames = Paths.getSparrowAtlas('fpmenu/background');
+        #end
         bg.animation.addByPrefix('idle', 'background idle', 30, true);
         bg.animation.play('idle');
         bg.antialiasing = ClientPrefs.globalAntialiasing;
+        #if mobile
+        bg.scale.set(2, 2);
+        #end
         add(bg);
         bg.screenCenter();
         
@@ -280,9 +287,13 @@ class FreeplayState extends MusicBeatState
 		WeekData.setDirectoryFromWeek();
 
         noHeroIntro = new FlxSprite(-200, -400);
+        #if !mobile
         noHeroIntro.frames = Paths.getSparrowAtlas('noherocutscenefirst', 'shared');
         noHeroIntro.animation.addByPrefix('finnJumpscareMomento', 'play003', 24, true);
         noHeroIntro.animation.play('finnJumpscareMomento',true);
+        #else
+        noHeroIntro.makeGraphic(1, 1, FlxColor.TRANSPARENT);
+        #end
         noHeroIntro.scrollFactor.set();
 
         add(noHeroIntro);

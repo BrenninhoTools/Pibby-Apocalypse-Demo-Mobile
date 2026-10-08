@@ -6,7 +6,7 @@ enum abstract RuntimeShaders(String) to String from String
     var distort = 
     "#pragma header
 
-    uniform float binaryIntensity = 1000.0;
+    uniform float binaryIntensity;
     uniform float negativity;
     
     void main(){
@@ -41,9 +41,8 @@ enum abstract RuntimeShaders(String) to String from String
     var glowy = "
     //SHADERTOY PORT FIX
     #pragma header
-    vec2 uv = openfl_TextureCoordv.xy;
-    vec2 fragCoord = openfl_TextureCoordv*openfl_TextureSize;
-    vec2 iResolution = openfl_TextureSize;
+    #define iResolution openfl_TextureSize
+    #define fragCoord (openfl_TextureCoordv*openfl_TextureSize)
     uniform float iTime;
     uniform float Size;
     #define iChannel0 bitmap
@@ -119,7 +118,7 @@ enum abstract RuntimeShaders(String) to String from String
     var monitor = "
     #pragma header
 
-    float zoom = 1;
+    float zoom = 1.0;
     void main()
     {
         vec2 uv = openfl_TextureCoordv;
@@ -147,50 +146,47 @@ enum abstract RuntimeShaders(String) to String from String
     var dayybloomshader = "
     #pragma header
 
-    vec2 uv = openfl_TextureCoordv.xy;
-    vec2 fragCoord = openfl_TextureCoordv*openfl_TextureSize;
-    vec2 iResolution = openfl_TextureSize;
     uniform float iTime;
-    #define iChannel0 bitmap
-    #define iChannel1 bitmap
-    #define iChannel2 bitmap
-    #define iChannelResolution bitmap
     #define texture flixel_texture2D
     #define fragColor gl_FragColor
     #define mainImage main
     uniform float uTime;
     uniform vec4 iMouse;
 
-    const float amount = 1;
-
-    float dim = 2;
-    float Directions = 17.0;
-    float Quality = 20.0; 
-    float Size = 22.0; 
-    vec2 Radius = Size/openfl_TextureSize.xy;
+    #ifdef GL_ES
+    const float Directions = 8.0;
+    const float Quality = 4.0;
+    #else
+    const float Directions = 17.0;
+    const float Quality = 20.0;
+    #endif
+    const float dim = 2.0;
+    const float Size = 22.0;
+    const float Pi = 6.28318530718;
 
     void mainImage()
-    { 
-        vec2 uv = openfl_TextureCoordv.xy ;
+    {
+        vec2 uv = openfl_TextureCoordv.xy;
 
-    float Pi = 6.28318530718; // Pi*2
-        
-    vec4 Color = texture2D( bitmap, uv);
-    
-    for( float d=0.0; d<Pi; d+=Pi/Directions){
-    for(float i=1.0/Quality; i<=1.0; i+=1.0/Quality){
-    float ex = (cos(d)*Size*i)/openfl_TextureSize.x;
-    float why = (sin(d)*Size*i)/openfl_TextureSize.y;
+        vec4 Color = texture2D(bitmap, uv);
 
-    Color += flixel_texture2D( bitmap, uv+vec2(ex,why));	
+        for (float d = 0.0; d < Pi; d += Pi / Directions) {
+            for (float i = 1.0 / Quality; i <= 1.0; i += 1.0 / Quality) {
+                float ex = (cos(d) * Size * i) / openfl_TextureSize.x;
+                float why = (sin(d) * Size * i) / openfl_TextureSize.y;
+
+                Color += flixel_texture2D(bitmap, uv + vec2(ex, why));
+            }
         }
-    }
-        
-    Color /= (dim * Quality) * Directions - 15.0;
-    vec4 bloom =  (flixel_texture2D( bitmap, uv)/ dim)+Color;
 
-    gl_FragColor = bloom;
+        #ifdef GL_ES
+        Color /= dim * (Directions * Quality + 1.0);
+        #else
+        Color /= (dim * Quality) * Directions - 15.0;
+        #endif
+        vec4 bloom = (flixel_texture2D(bitmap, uv) / dim) + Color;
 
+        gl_FragColor = bloom;
     }";
 
     // idfk why but using Shaders.hx gives null attacks *sobs
@@ -232,9 +228,8 @@ enum abstract RuntimeShaders(String) to String from String
 
     var fwGlitch = "
     #pragma header
-    vec2 uv = openfl_TextureCoordv.xy;
-    vec2 fragCoord = openfl_TextureCoordv*openfl_TextureSize;
-    vec2 iResolution = openfl_TextureSize;
+    #define iResolution openfl_TextureSize
+    #define fragCoord (openfl_TextureCoordv*openfl_TextureSize)
     uniform float iTime;
     #define iChannel0 bitmap
     #define texture flixel_texture2D
@@ -269,12 +264,12 @@ enum abstract RuntimeShaders(String) to String from String
         float val = 0.0;
         float amp = 0.5;
         
-        while(count != 0)
+        for (int n = 0; n < 8; n++)
         {
+            if (n >= count) break;
             val += amp * noise(uv, blockiness);
             amp *= 0.5;
-            uv *= complexity;    
-            count--;
+            uv *= complexity;
         }
         
         return val;
@@ -317,9 +312,7 @@ enum abstract RuntimeShaders(String) to String from String
 
     var file = "
     #pragma header
-    vec2 uv = openfl_TextureCoordv.xy;
-    vec2 fragCoord = openfl_TextureCoordv*openfl_TextureSize;
-    vec2 iResolution = openfl_TextureSize;
+    #define iResolution openfl_TextureSize
     uniform float iTime;
     #define iChannel0 bitmap
     #define iChannel1 bitmap
@@ -396,20 +389,20 @@ enum abstract RuntimeShaders(String) to String from String
 
     var pixel = 
     "#pragma header
-	vec2 uv = openfl_TextureCoordv.xy;
-	vec2 fragCoord = openfl_TextureCoordv*openfl_TextureSize;
-	vec2 iResolution = openfl_TextureSize;
+	#define iResolution openfl_TextureSize
+	#define fragCoord (openfl_TextureCoordv*openfl_TextureSize)
 	uniform float iTime;
 	#define iChannel0 bitmap
 	#define texture flixel_texture2D
 	#define fragColor gl_FragColor
 	#define mainImage main
 
-	uniform float size = 5.0;
+	uniform float size;
 
 	void mainImage() {
 		vec2 coordinates = fragCoord.xy/iResolution.xy;
-		vec2 pixelSize = vec2(size/iResolution.x, size/iResolution.y);
+		float pixelStep = size > 0.0 ? size : 5.0;
+		vec2 pixelSize = vec2(pixelStep/iResolution.x, pixelStep/iResolution.y);
 		vec2 position = floor(coordinates/pixelSize)*pixelSize;
 		vec4 finalColor = texture(iChannel0, position);
 		fragColor = finalColor;

@@ -348,6 +348,52 @@ vec3 rgb2yiq(vec3 col)
 // end ntsc-rgbyuv
 
 #define TAPS 32
+#ifdef GL_ES
+float luma_pair(int j)
+{
+	if (j == 0) return -0.000380688;
+	if (j == 1) return -0.000201146;
+	if (j == 2) return -0.000066171;
+	if (j == 3) return -0.000677986;
+	if (j == 4) return -0.000724880;
+	if (j == 5) return 0.000885987;
+	if (j == 6) return 0.001747579;
+	if (j == 7) return 0.000376621;
+	if (j == 8) return 0.001592863;
+	if (j == 9) return 0.006916457;
+	if (j == 10) return 0.001924627;
+	if (j == 11) return -0.025270726;
+	if (j == 12) return -0.044556827;
+	if (j == 13) return 0.008408684;
+	if (j == 14) return 0.153264499;
+	if (j == 15) return 0.307100113;
+	return 0.0;
+}
+
+float chroma_pair(int j)
+{
+	if (j == 0) return 0.003063074;
+	if (j == 1) return 0.004442277;
+	if (j == 2) return 0.006287339;
+	if (j == 3) return 0.008684430;
+	if (j == 4) return 0.011706550;
+	if (j == 5) return 0.015400319;
+	if (j == 6) return 0.019771688;
+	if (j == 7) return 0.024772568;
+	if (j == 8) return 0.030290854;
+	if (j == 9) return 0.036146419;
+	if (j == 10) return 0.042095172;
+	if (j == 11) return 0.047842357;
+	if (j == 12) return 0.053064749;
+	if (j == 13) return 0.057439803;
+	if (j == 14) return 0.060678251;
+	if (j == 15) return 0.062555635;
+	return 0.0;
+}
+
+const float luma_center = 0.178571429;
+const float chroma_center = 0.031517031;
+#else
 const float luma_filter[TAPS + 1] = float[TAPS + 1](
 	-0.000174844,
 	-0.000205844,
@@ -418,6 +464,8 @@ const float chroma_filter[TAPS + 1] = float[TAPS + 1](
 	0.031420995,
 	0.031517031);
 
+#endif
+
 // #define fetch_offset(offset, one_x) \\
 // 	pass1(uv - vec2(0.5 / openfl_TextureSize.x, 0.0) + vec2((offset) * (one_x), 0.0)).xyzw
 
@@ -458,6 +506,21 @@ void main()
 	float one_x = 1.0 / openfl_TextureSize.x;
 	vec4 signal = vec4(0.0);
 
+#ifdef GL_ES
+	for (int j = 0; j < 16; j++)
+	{
+		float offset = float(j * 2) + 0.5;
+
+		vec4 sums = fetch_offset(offset - float(TAPS), one_x) +
+			fetch_offset(float(TAPS) - offset, one_x);
+
+		float lw = luma_pair(j);
+		float cw = chroma_pair(j);
+		signal += sums * vec4(lw, cw, cw, 1.0);
+	}
+	signal += pass1(uv - vec2(0.5 / openfl_TextureSize.x, 0.0)).xyzw *
+		vec4(luma_center, chroma_center, chroma_center, 1.0);
+#else
 	for (int i = 0; i < TAPS; i++)
 	{
 		float offset = float(i);
@@ -470,8 +533,10 @@ void main()
 	signal += pass1(uv - vec2(0.5 / openfl_TextureSize.x, 0.0)).xyzw *
 		vec4(luma_filter[TAPS], chroma_filter[TAPS], chroma_filter[TAPS], 1.0);
 
+#endif
+
 	vec3 rgb = yiq2rgb(signal.xyz);
-	float alpha = signal.a/(TAPS+1);
+	float alpha = signal.a/float(TAPS+1);
 	vec4 color = vec4(pow(rgb, vec3(NTSC_CRT_GAMMA / NTSC_MONITOR_GAMMA)), flixel_texture2D(bitmap, uv).a);
 	gl_FragColor = color;
 }

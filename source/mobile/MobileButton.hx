@@ -33,7 +33,7 @@ class MobileButton extends FlxSprite
 				prefix = 'pause';
 		}
 
-		frames = Paths.getSparrowAtlas('mobile/' + prefix + 'Button');
+		frames = Paths.getSparrowAtlas('mobile/' + prefix + 'Button', 'shared');
 		animation.addByIndices('idle', prefix, [0], '', 24, false);
 		animation.addByPrefix('press', prefix, 24, false);
 		animation.play('idle');
