@@ -7,10 +7,10 @@ import flixel.graphics.FlxGraphic;
 import Controls;
 
 class ClientPrefs {
-	public static var downScroll:Bool = false;
-	public static var middleScroll:Bool = false;
+	public static var downScroll:Bool = #if mobile true #else false #end;
+	public static var middleScroll:Bool = #if mobile true #else false #end;
 	public static var opponentStrums:Bool = true;
-	public static var showFPS:Bool = true;
+	public static var showFPS:Bool = #if mobile false #else true #end;
 	public static var flashing:Bool = true;
 	public static var globalAntialiasing:Bool = true;
 	public static var noteSplashes:Bool = true;
@@ -300,6 +300,12 @@ class ClientPrefs {
 
 		if (FlxG.save.data.useGPUCaching != null)
 			useGPUCaching = FlxG.save.data.useGPUCaching;
+
+		#if mobile
+		downScroll = true;
+		middleScroll = true;
+		showFPS = false;
+		#end
 
 		var save:FlxSave = new FlxSave();
 		save.bind('controls_v2', 'ninjamuffin99');

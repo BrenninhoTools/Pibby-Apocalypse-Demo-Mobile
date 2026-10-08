@@ -160,42 +160,74 @@ class Controls extends FlxActionSet
 	public var UI_UP(get, never):Bool;
 
 	inline function get_UI_UP()
+		#if mobile
+		return _ui_up.check() || mobile.TouchInput.navUp;
+		#else
 		return _ui_up.check();
+		#end
 
 	public var UI_LEFT(get, never):Bool;
 
 	inline function get_UI_LEFT()
+		#if mobile
+		return _ui_left.check() || mobile.TouchInput.navLeft;
+		#else
 		return _ui_left.check();
+		#end
 
 	public var UI_RIGHT(get, never):Bool;
 
 	inline function get_UI_RIGHT()
+		#if mobile
+		return _ui_right.check() || mobile.TouchInput.navRight;
+		#else
 		return _ui_right.check();
+		#end
 
 	public var UI_DOWN(get, never):Bool;
 
 	inline function get_UI_DOWN()
+		#if mobile
+		return _ui_down.check() || mobile.TouchInput.navDown;
+		#else
 		return _ui_down.check();
+		#end
 
 	public var UI_UP_P(get, never):Bool;
 
 	inline function get_UI_UP_P()
+		#if mobile
+		return _ui_upP.check() || mobile.TouchInput.navUp;
+		#else
 		return _ui_upP.check();
+		#end
 
 	public var UI_LEFT_P(get, never):Bool;
 
 	inline function get_UI_LEFT_P()
+		#if mobile
+		return _ui_leftP.check() || mobile.TouchInput.navLeft;
+		#else
 		return _ui_leftP.check();
+		#end
 
 	public var UI_RIGHT_P(get, never):Bool;
 
 	inline function get_UI_RIGHT_P()
+		#if mobile
+		return _ui_rightP.check() || mobile.TouchInput.navRight;
+		#else
 		return _ui_rightP.check();
+		#end
 
 	public var UI_DOWN_P(get, never):Bool;
 
 	inline function get_UI_DOWN_P()
+		#if mobile
+		return _ui_downP.check() || mobile.TouchInput.navDown;
+		#else
 		return _ui_downP.check();
+		#end
 
 	public var UI_UP_R(get, never):Bool;
 
@@ -280,17 +312,33 @@ class Controls extends FlxActionSet
 	public var ACCEPT(get, never):Bool;
 
 	inline function get_ACCEPT()
+		#if mobile
+		return _accept.check() || mobile.TouchInput.acceptTap;
+		#else
 		return _accept.check();
+		#end
 
 	public var BACK(get, never):Bool;
 
 	inline function get_BACK()
+		#if android
+		return _back.check() || mobile.TouchInput.backPressed || FlxG.android.justReleased.BACK;
+		#elseif mobile
+		return _back.check() || mobile.TouchInput.backPressed;
+		#else
 		return _back.check();
+		#end
 
 	public var PAUSE(get, never):Bool;
 
 	inline function get_PAUSE()
+		#if android
+		return _pause.check() || mobile.TouchInput.pausePressed || FlxG.android.justReleased.BACK;
+		#elseif mobile
+		return _pause.check() || mobile.TouchInput.pausePressed;
+		#else
 		return _pause.check();
+		#end
 
 	public var RESET(get, never):Bool;
 

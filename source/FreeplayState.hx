@@ -29,6 +29,10 @@ import openfl.filters.ShaderFilter;
 #if MODS_ALLOWED
 import sys.FileSystem;
 #end
+#if mobile
+import mobile.MobileButton;
+import mobile.TouchInput;
+#end
 
 using StringTools;
 
@@ -331,6 +335,11 @@ class FreeplayState extends MusicBeatState
 				}
 		});
 
+		#if mobile
+		TouchInput.verticalNav = false;
+		add(new MobileButton(MobileButtonType.BACK));
+		#end
+
 		super.create();
 	}
 
@@ -402,6 +411,23 @@ class FreeplayState extends MusicBeatState
 
 		var leftP = controls.UI_LEFT_P;
 		var rightP = controls.UI_RIGHT_P;
+
+		#if mobile
+		if (TouchInput.tap)
+		{
+			if (TouchInput.tapX < FlxG.width * 0.2)
+			{
+				leftP = true;
+				TouchInput.consumeTap();
+			}
+			else if (TouchInput.tapX > FlxG.width * 0.8)
+			{
+				rightP = true;
+				TouchInput.consumeTap();
+			}
+		}
+		#end
+
 		var accepted = controls.ACCEPT;
 		var space = FlxG.keys.justPressed.SPACE;
 		var ctrl = FlxG.keys.justPressed.CONTROL;

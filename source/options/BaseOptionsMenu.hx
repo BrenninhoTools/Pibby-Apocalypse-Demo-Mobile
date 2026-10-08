@@ -24,6 +24,10 @@ import flixel.util.FlxTimer;
 import flixel.input.keyboard.FlxKey;
 import flixel.graphics.FlxGraphic;
 import Controls;
+#if mobile
+import mobile.MobileButton;
+import mobile.TouchInput;
+#end
 
 using StringTools;
 
@@ -125,6 +129,11 @@ class BaseOptionsMenu extends MusicBeatSubstate
 
 		changeSelection();
 		reloadCheckboxes();
+
+		#if mobile
+		TouchInput.tapAccepts = false;
+		add(new MobileButton(MobileButtonType.BACK, true));
+		#end
 	}
 
 	public function addOption(option:Option) {
@@ -146,6 +155,21 @@ class BaseOptionsMenu extends MusicBeatSubstate
 			changeSelection(1);
 		}
 
+		#if mobile
+		var tapAccept:Bool = false;
+		for (i in 0...grpOptions.members.length)
+		{
+			if (TouchInput.tapOver(grpOptions.members[i], 20))
+			{
+				if (i == curSelected)
+					tapAccept = true;
+				else
+					changeSelection(i - curSelected);
+				break;
+			}
+		}
+		#end
+
 		if (controls.BACK) {
 			close();
 			FlxG.sound.play(Paths.sound('cancelMenu'));
@@ -161,7 +185,12 @@ class BaseOptionsMenu extends MusicBeatSubstate
 
 			if(usesCheckbox)
 			{
-				if(controls.ACCEPT)
+				var accepted:Bool = controls.ACCEPT;
+				#if mobile
+				accepted = accepted || tapAccept;
+				#end
+
+				if(accepted)
 				{
 					FlxG.sound.play(Paths.sound('scrollMenu'));
 					curOption.setValue((curOption.getValue() == true) ? false : true);

@@ -112,7 +112,12 @@ class Main extends Sprite
 		ScriptManager.init();
 		InputFormatter.loadKeys();
 
-		#if !mobile
+		#if mobile
+		mobile.TouchInput.init();
+		#if android
+		FlxG.android.preventDefaultKeys = [flixel.input.android.FlxAndroidKey.BACK];
+		#end
+		#else
 		addChild(new FPSCounter(10, 3, 0xFFFFFF));
 		if(FPSCounter.instance != null) {
 			FPSCounter.instance.visible = ClientPrefs.showFPS;
@@ -135,12 +140,16 @@ class Main extends Sprite
 			addChild(buildDate);
 		}
 
+		#if mobile
+		FlxG.mouse.visible = false;
+		#else
 		FlxG.mouse.visible = true;
 		sprite = new FlxSprite().loadGraphic(Paths.image('cursor/mouse (1)'));
 
 		FlxG.mouse.load(sprite.pixels);
 
 		addEventListener(Event.ENTER_FRAME, update);
+		#end
 		
 		#if CRASH_HANDLER
 		Lib.current.loaderInfo.uncaughtErrorEvents.addEventListener(UncaughtErrorEvent.UNCAUGHT_ERROR, onCrash);

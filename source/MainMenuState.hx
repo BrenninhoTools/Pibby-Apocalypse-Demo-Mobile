@@ -29,6 +29,10 @@ import openfl.filters.ShaderFilter;
 import Achievements;
 import editors.MasterEditorMenu;
 import flixel.input.keyboard.FlxKey;
+#if mobile
+import mobile.MobileButton;
+import mobile.TouchInput;
+#end
 
 using StringTools;
 
@@ -61,6 +65,8 @@ class MainMenuState extends MusicBeatState
 	var aweTxt:FlxText;
     var verTxt:FlxText;
 	var barTab : FlxSprite;
+	var optionsIcon:FlxSprite;
+	var discordIcon:FlxSprite;
 
     var URL:String = "https://pastebin.com/raw/HLtJfzAC";
     var MOTD:String;
@@ -91,7 +97,7 @@ class MainMenuState extends MusicBeatState
 		transIn = FlxTransitionableState.defaultTransIn;
 		transOut = FlxTransitionableState.defaultTransOut;
 
-		FlxG.mouse.visible = true; // For the hovering over the discord stuff
+		FlxG.mouse.visible = #if mobile false #else true #end; // For the hovering over the discord stuff
 
 		persistentUpdate = persistentDraw = true;
 
@@ -138,32 +144,34 @@ class MainMenuState extends MusicBeatState
 		cinematicup.antialiasing = ClientPrefs.globalAntialiasing;
 		add(cinematicup);
 
+		#if mobile
+		TouchInput.tapAccepts = false;
+		var backButton:MobileButton = new MobileButton(MobileButtonType.BACK);
+		#end
+
 		var options = new FlxSprite().loadGraphic(Paths.image('pibymenu/Options'));
 		options.alpha = 0.4;
 		options.scale.set(0.3, 0.3);
 		options.updateHitbox();
 		options.setPosition(FlxG.width - 97, FlxG.height - 63);
+		#if mobile
+		options.x = backButton.x - options.width - 24;
+		options.alpha = 1;
+		#end
 		options.antialiasing = ClientPrefs.globalAntialiasing;
 		add(options);
+		optionsIcon = options;
 
+		#if !mobile
 		FlxMouseEvent.add(options,
-			function(s : FlxSprite) { 
-				menuItems.forEach(function(spr:FlxSprite)
-					{
-						FlxTween.tween(spr, {alpha: 0}, 0.4, {
-							ease: FlxEase.quadOut,
-							onComplete: function(twn:FlxTween)
-							{
-								spr.kill();
-							}
-						});
-					});
-					MusicBeatState.switchState(new options.OptionsState());
+			function(s : FlxSprite) {
+				openOptions();
 			 },
 			 null,
 			 function( s : FlxSprite ) { FlxTween.tween(options, {alpha: 1}, 0.25, { ease: FlxEase.quadOut}); },
 			 function( s : FlxSprite ) { FlxTween.tween(options, {alpha: 0.4}, 0.25, { ease: FlxEase.quadOut}); }
 			 );
+		#end
 
 
 		var discord = new FlxSprite().loadGraphic(Paths.image('pibymenu/discord'));
@@ -171,15 +179,21 @@ class MainMenuState extends MusicBeatState
 		discord.scale.set(0.3, 0.3);
 		discord.updateHitbox();
 		discord.setPosition(options.x - 85, FlxG.height - 60);
+		#if mobile
+		discord.alpha = 1;
+		#end
 		discord.antialiasing = ClientPrefs.globalAntialiasing;
 		add(discord);
+		discordIcon = discord;
 
+		#if !mobile
 		FlxMouseEvent.add(discord,
 			function(s : FlxSprite) { Lib.getURL(new URLRequest('https://discord.gg/dtnpa')); },
 			null,
 			function( s : FlxSprite ) { FlxTween.tween(discord, {alpha: 1}, 0.25, { ease: FlxEase.quadOut}); },
 			function( s : FlxSprite ) { FlxTween.tween(discord, {alpha: 0.4}, 0.25, { ease: FlxEase.quadOut}); }
 		);
+		#end
 
 
 		aweTxt = new FlxText(0, FlxG.height - 35, 0, 'Now Playing: Menu Theme ${Main.funnyMenuMusic == 2 ? '(Alt)' : ''} - By ${Main.funnyMenuMusic == 2 ? 'Sodukoru' : 'GoddessAwe'} ♪', 8);
@@ -226,6 +240,10 @@ class MainMenuState extends MusicBeatState
 
 		changeItem();
 
+		#if mobile
+		add(backButton);
+		#end
+
 		super.create();
 
         if(!FlxG.save.data.debugBuild) {
@@ -243,6 +261,39 @@ class MainMenuState extends MusicBeatState
 	}
 
 	var selectedSomethin:Bool = false;
+
+	function openOptions():Void
+	{
+		menuItems.forEach(function(spr:FlxSprite)
+		{
+			FlxTween.tween(spr, {alpha: 0}, 0.4, {
+				ease: FlxEase.quadOut,
+				onComplete: function(twn:FlxTween)
+				{
+					spr.kill();
+				}
+			});
+		});
+		MusicBeatState.switchState(new options.OptionsState());
+	}
+
+	#if mobile
+	function nearestItem(touchX:Float):Int
+	{
+		var nearest:Int = curSelected;
+		var nearestDistance:Float = Math.POSITIVE_INFINITY;
+		for (spr in menuItems.members)
+		{
+			var distance:Float = Math.abs(spr.x + spr.width / 2 - touchX);
+			if (distance < nearestDistance)
+			{
+				nearestDistance = distance;
+				nearest = spr.ID;
+			}
+		}
+		return nearest;
+	}
+	#end
 
 	override function update(elapsed:Float)
 	{
@@ -289,6 +340,39 @@ class MainMenuState extends MusicBeatState
 				changeItem(1);
 			}
 
+			#if mobile
+			var tappedItem:Int = -1;
+
+			if (TouchInput.swipeLeft)
+			{
+				FlxG.sound.play(Paths.sound('scrollMenu'));
+				changeItem(-1);
+			}
+
+			if (TouchInput.swipeRight)
+			{
+				FlxG.sound.play(Paths.sound('scrollMenu'));
+				changeItem(1);
+			}
+
+			if (TouchInput.tapOver(optionsIcon, 20))
+			{
+				selectedSomethin = true;
+				openOptions();
+			}
+			else if (TouchInput.tapOver(discordIcon, 20))
+			{
+				Lib.getURL(new URLRequest('https://discord.gg/dtnpa'));
+			}
+			else if (TouchInput.tap)
+			{
+				tappedItem = nearestItem(TouchInput.tapX);
+				TouchInput.consumeTap();
+				if (tappedItem != curSelected)
+					changeItem(tappedItem - curSelected);
+			}
+			#end
+
 			if (controls.BACK)
 			{
 				selectedSomethin = true;
@@ -296,7 +380,12 @@ class MainMenuState extends MusicBeatState
 				MusicBeatState.switchState(new TitleState());
 			}
 
-			if (controls.ACCEPT)
+			var accepted:Bool = controls.ACCEPT;
+			#if mobile
+			accepted = accepted || tappedItem > -1;
+			#end
+
+			if (accepted)
 			{
 				selectedSomethin = true;
 				FlxG.sound.play(Paths.sound('confirmMenu'));

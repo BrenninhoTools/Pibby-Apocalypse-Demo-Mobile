@@ -25,6 +25,10 @@ import flixel.input.keyboard.FlxKey;
 import flixel.graphics.FlxGraphic;
 import Controls;
 import openfl.system.Capabilities;
+#if mobile
+import mobile.MobileButton;
+import mobile.TouchInput;
+#end
 
 using StringTools;
 
@@ -62,6 +66,11 @@ class OptionsState extends MusicBeatState
 		DiscordClient.changePresence("⚙️ | In the Options Menu", null);
 		#end
 
+		#if mobile
+		options.remove('Controls');
+		TouchInput.tapAccepts = false;
+		#end
+
 		var bg:FlxSprite = new FlxSprite().loadGraphic(Paths.image('menuDesat'));
 		bg.color = 0xFFea71fd;
 		bg.updateHitbox();
@@ -89,6 +98,10 @@ class OptionsState extends MusicBeatState
 		changeSelection();
 		ClientPrefs.saveSettings();
 
+		#if mobile
+		add(new MobileButton(MobileButtonType.BACK));
+		#end
+
 		super.create();
 	}
 
@@ -106,6 +119,20 @@ class OptionsState extends MusicBeatState
 		if (controls.UI_DOWN_P) {
 			changeSelection(1);
 		}
+
+		#if mobile
+		for (i in 0...grpOptions.members.length)
+		{
+			if (TouchInput.tapOver(grpOptions.members[i], 12))
+			{
+				if (i == curSelected)
+					openSelectedSubstate(options[i]);
+				else
+					changeSelection(i - curSelected);
+				break;
+			}
+		}
+		#end
 
 		if (controls.BACK) {
 			FlxG.sound.play(Paths.sound('cancelMenu'));

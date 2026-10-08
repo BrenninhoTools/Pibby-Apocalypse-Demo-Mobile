@@ -85,6 +85,12 @@ import hxcodec.VideoHandler;
 import hxcodec.VideoSprite;
 #end
 
+#if mobile
+import mobile.MobileButton;
+import mobile.MobileHitbox;
+import mobile.TouchInput;
+#end
+
 
 
 class PlayState extends MusicBeatState
@@ -314,6 +320,11 @@ class PlayState extends MusicBeatState
 	public var camVoid:FlxCamera;
 	public var camOther:FlxCamera;
 	public var camCard:FlxCamera;
+	#if mobile
+	public var camMobile:FlxCamera;
+	public var mobileHitbox:MobileHitbox;
+	public var mobilePauseButton:MobileButton;
+	#end
 	public var cameraSpeed:Float = 1;
 	public var cameraBumpTween : FlxTween;
 	public var cameraHUDBumpTween : FlxTween;
@@ -512,12 +523,19 @@ class PlayState extends MusicBeatState
 		camHUD.alpha = 0;
 		camOther.bgColor.alpha = 0;
 		camCard.bgColor.alpha = 0;
+		#if mobile
+		camMobile = new FlxCamera();
+		camMobile.bgColor.alpha = 0;
+		#end
 
 		FlxG.cameras.add(camVoid, false);
 		FlxG.cameras.reset(camGame);
 		FlxG.cameras.add(camOverlay, false);
 		FlxG.cameras.add(camHUD, false);
 		FlxG.cameras.add(camOther, false);
+		#if mobile
+		FlxG.cameras.add(camMobile, false);
+		#end
 		FlxG.cameras.add(camCard, false);
 		grpNoteSplashes = new FlxTypedGroup<NoteSplash>();
 
@@ -1130,6 +1148,16 @@ class PlayState extends MusicBeatState
         pibbyHealthbar.cameras = [camHUD];
         if(SONG.song.toLowerCase() == 'mindless')finnT.cameras = [camHUD];
 		channelTxt.cameras = [camOther];
+
+		#if mobile
+		mobileHitbox = new MobileHitbox(pressKey, releaseKey);
+		mobileHitbox.cameras = [camMobile];
+		add(mobileHitbox);
+
+		mobilePauseButton = new MobileButton(MobileButtonType.PAUSE);
+		mobilePauseButton.cameras = [camMobile];
+		add(mobilePauseButton);
+		#end
 
 		// if (SONG.song == 'South')
 		// FlxG.camera.alpha = 0.7;
@@ -2548,6 +2576,11 @@ class PlayState extends MusicBeatState
 
 	override function openSubState(SubState:FlxSubState)
 	{
+		#if mobile
+		if (mobileHitbox != null)
+			mobileHitbox.releaseAll();
+		#end
+
 		if (paused)
 		{
 			if (FlxG.sound.music != null)
@@ -2704,6 +2737,15 @@ class PlayState extends MusicBeatState
 		{
 			iconP1.swapOldIcon();
 		}*/
+		#if mobile
+		if (mobileHitbox != null)
+		{
+			mobileHitbox.enabled = startedCountdown && !paused && !endingSong && subState == null;
+			TouchInput.gameplay = mobileHitbox.enabled;
+			mobileHitbox.poll();
+		}
+		#end
+
 		callOnLuas('onUpdate', [elapsed]);
         
 		if (storyWeekName != 'gumball')
@@ -4207,9 +4249,14 @@ class PlayState extends MusicBeatState
 	{
 		var eventKey:FlxKey = event.keyCode;
 		var key:Int = getKeyFromEvent(eventKey);
-		//trace('Pressed: ' + eventKey);
 
-		if (!cpuControlled && startedCountdown && !paused && key > -1 && (FlxG.keys.checkStatus(eventKey, JUST_PRESSED) || ClientPrefs.controllerMode))
+		if (FlxG.keys.checkStatus(eventKey, JUST_PRESSED) || ClientPrefs.controllerMode)
+			pressKey(key);
+	}
+
+	public function pressKey(key:Int):Void
+	{
+		if (!cpuControlled && startedCountdown && !paused && key > -1)
 		{
 			if(!boyfriend.stunned && generatedMusic && !endingSong)
 			{
@@ -4302,6 +4349,11 @@ class PlayState extends MusicBeatState
 	{
 		var eventKey:FlxKey = event.keyCode;
 		var key:Int = getKeyFromEvent(eventKey);
+		releaseKey(key);
+	}
+
+	public function releaseKey(key:Int):Void
+	{
 		if(!cpuControlled && startedCountdown && !paused && key > -1)
 		{
 			var spr:StrumNote = playerStrums.members[key];
@@ -4396,6 +4448,14 @@ class PlayState extends MusicBeatState
 		{
 			ret[i] = Reflect.getProperty(controls, controlArray[i] + suffix);
 		}
+
+		#if mobile
+		if (suffix == '' && mobileHitbox != null)
+		{
+			for (i in 0...ret.length)
+				ret[i] = ret[i] || mobileHitbox.held[i];
+		}
+		#end
 		return ret;
 	}
 
@@ -4966,6 +5026,9 @@ class PlayState extends MusicBeatState
 			FlxG.stage.removeEventListener(KeyboardEvent.KEY_DOWN, onKeyPress);
 			FlxG.stage.removeEventListener(KeyboardEvent.KEY_UP, onKeyRelease);
 		}
+		#if mobile
+		TouchInput.gameplay = false;
+		#end
 		FlxAnimationController.globalSpeed = 1;
 		FlxG.sound.music.pitch = 1;
 		FlxG.game.setFilters([]);

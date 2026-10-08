@@ -1,0 +1,127 @@
+name: Build
+
+on:
+  push:
+    branches:
+      - legacy/demo
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  HAXE_VERSION: 4.2.5
+  LIME_VERSION: 8.0.0
+  OPENFL_VERSION: 9.2.1
+  FLIXEL_VERSION: 5.2.2
+  FLIXEL_ADDONS_VERSION: 3.0.2
+
+jobs:
+  android:
+    name: Android
+    runs-on: ubuntu-22.04
+    timeout-minutes: 90
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Haxe
+        uses: krdlab/setup-haxe@v1
+        with:
+          haxe-version: ${{ env.HAXE_VERSION }}
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 11
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Setup Android NDK
+        id: ndk
+        uses: nttld/setup-ndk@v1
+        with:
+          ndk-version: r21e
+
+      - name: Install Android packages
+        run: sdkmanager "platforms;android-33" "build-tools;33.0.2"
+
+      - name: Install Haxe libraries
+        run: |
+          haxelib setup ~/haxelib
+          yes | haxelib install hxcpp
+          yes | haxelib install lime ${{ env.LIME_VERSION }}
+          yes | haxelib install openfl ${{ env.OPENFL_VERSION }}
+          yes | haxelib install flixel ${{ env.FLIXEL_VERSION }}
+          yes | haxelib install flixel-addons ${{ env.FLIXEL_ADDONS_VERSION }}
+          yes | haxelib install flixel-ui
+          yes | haxelib install hscript
+          haxelib list
+
+      - name: Configure Lime
+        run: |
+          haxelib run lime setup -y
+          haxelib run lime config ANDROID_SDK "$ANDROID_HOME"
+          haxelib run lime config ANDROID_NDK_ROOT "${{ steps.ndk.outputs.ndk-path }}"
+          haxelib run lime config JAVA_PATH "$JAVA_HOME"
+          haxelib run lime config ANDROID_SETUP true
+
+      - name: Build
+        run: haxelib run lime build android -final
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: pibby-apocalypse-android
+          path: export/release/android/bin/app/build/outputs/apk/**/*.apk
+          if-no-files-found: error
+
+  ios:
+    name: iOS
+    runs-on: macos-13
+    timeout-minutes: 90
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Haxe
+        uses: krdlab/setup-haxe@v1
+        with:
+          haxe-version: ${{ env.HAXE_VERSION }}
+
+      - name: Install Haxe libraries
+        run: |
+          haxelib setup ~/haxelib
+          yes | haxelib install hxcpp
+          yes | haxelib install lime ${{ env.LIME_VERSION }}
+          yes | haxelib install openfl ${{ env.OPENFL_VERSION }}
+          yes | haxelib install flixel ${{ env.FLIXEL_VERSION }}
+          yes | haxelib install flixel-addons ${{ env.FLIXEL_ADDONS_VERSION }}
+          yes | haxelib install flixel-ui
+          yes | haxelib install hscript
+          haxelib list
+
+      - name: Configure Lime
+        run: haxelib run lime setup -y
+
+      - name: Build
+        run: haxelib run lime build ios -nosign -final
+
+      - name: Package IPA
+        run: |
+          APP_PATH=$(find export/release/ios -maxdepth 6 -name "*.app" -type d | head -n 1)
+          mkdir -p ipa/Payload
+          cp -R "$APP_PATH" ipa/Payload/
+          cd ipa
+          zip -qry ../PibbyApocalypse.ipa Payload
+
+      - name: Upload IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: pibby-apocalypse-ios
+          path: PibbyApocalypse.ipa
+          if-no-files-found: error
