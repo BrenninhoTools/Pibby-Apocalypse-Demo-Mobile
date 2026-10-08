@@ -3,6 +3,7 @@ package mobile;
 import flixel.FlxBasic;
 import flixel.FlxG;
 import flixel.FlxObject;
+import flixel.input.touch.FlxTouch;
 import flixel.math.FlxPoint;
 import mobile.MobileButton;
 
@@ -126,7 +127,7 @@ class TouchInput
 				if (point != null)
 					points.remove(point);
 
-				point = new TouchPoint(id, touch.screenX, touch.screenY);
+				point = new TouchPoint(id, globalX(touch), globalY(touch));
 				point.onButton = pressButtons(point);
 				point.eligible = gameplay && !point.onButton && state != null && state.subState == null;
 				points.push(point);
@@ -136,8 +137,8 @@ class TouchInput
 				continue;
 
 			point.heldTime += elapsed;
-			point.x = touch.screenX;
-			point.y = touch.screenY;
+			point.x = globalX(touch);
+			point.y = globalY(touch);
 
 			if (!point.onButton && gestures)
 				track(point);
@@ -160,6 +161,16 @@ class TouchInput
 			if (seen.indexOf(points[i].id) < 0)
 				points.splice(i, 1);
 		}
+	}
+
+	static inline function globalX(touch:FlxTouch):Float
+	{
+		@:privateAccess return touch._globalScreenX;
+	}
+
+	static inline function globalY(touch:FlxTouch):Float
+	{
+		@:privateAccess return touch._globalScreenY;
 	}
 
 	static function track(point:TouchPoint):Void
