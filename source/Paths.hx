@@ -472,10 +472,10 @@ class Paths
 		#if sys
 		if (FileSystem.exists(asset))
 			return File.getContent(asset);
-		#else
+		#end
+
 		if (Assets.exists(asset))
 			return Assets.getText(asset);
-		#end
 
 		return null;
 	}

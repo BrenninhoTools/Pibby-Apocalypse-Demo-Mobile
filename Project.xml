@@ -166,8 +166,8 @@
 	<haxedef name="NAPE_RELEASE_BUILD" unless="debug" />
 	
 	<!--Used for Izzy Engine's crash handler-->
-	<haxedef name="HXCPP_CHECK_POINTER" if="CRASH_HANDLER" />
-	<haxedef name="HXCPP_STACK_LINE" if="CRASH_HANDLER" />
+	<haxedef name="HXCPP_CHECK_POINTER" if="CRASH_HANDLER || mobile" />
+	<haxedef name="HXCPP_STACK_LINE" if="CRASH_HANDLER || mobile" />
 
 	<!-- _________________________________ Custom _______________________________ -->
 
