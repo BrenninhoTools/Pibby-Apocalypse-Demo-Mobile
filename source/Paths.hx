@@ -450,6 +450,17 @@ class Paths
         return null;
     }
 
+	#if !MODS_ALLOWED
+	inline static public function mods(key:String = '')
+		return 'mods/' + key;
+
+	static public function modFolders(key:String)
+		return 'mods/' + key;
+
+	static public function getGlobalMods():Array<String>
+		return [];
+	#end
+
 	inline static public function modsShaderFragment(key:String, ?library:String)
 		return modFolders('shaders/' + key + '.frag');
 

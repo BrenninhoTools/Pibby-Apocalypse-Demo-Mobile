@@ -12,9 +12,9 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  HAXE_VERSION: 4.2.5
-  LIME_VERSION: 8.0.0
-  OPENFL_VERSION: 9.2.1
+  HAXE_VERSION: 4.3.6
+  LIME_VERSION: 8.3.2
+  OPENFL_VERSION: 9.5.2
   FLIXEL_VERSION: 5.2.2
   FLIXEL_ADDONS_VERSION: 3.0.2
 
@@ -36,7 +36,7 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: 11
+          java-version: 17
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
@@ -45,7 +45,7 @@ jobs:
         id: ndk
         uses: nttld/setup-ndk@v1
         with:
-          ndk-version: r21e
+          ndk-version: r26b
 
       - name: Install Android packages
         run: sdkmanager "platforms;android-33" "build-tools;33.0.2"
@@ -53,13 +53,13 @@ jobs:
       - name: Install Haxe libraries
         run: |
           haxelib setup ~/haxelib
-          yes | haxelib install hxcpp
+          yes | haxelib install hxcpp 4.3.2
           yes | haxelib install lime ${{ env.LIME_VERSION }}
           yes | haxelib install openfl ${{ env.OPENFL_VERSION }}
           yes | haxelib install flixel ${{ env.FLIXEL_VERSION }}
           yes | haxelib install flixel-addons ${{ env.FLIXEL_ADDONS_VERSION }}
-          yes | haxelib install flixel-ui
-          yes | haxelib install hscript
+          yes | haxelib install flixel-ui 2.6.5
+          yes | haxelib install hscript 2.7.0
           haxelib list
 
       - name: Configure Lime
@@ -96,13 +96,13 @@ jobs:
       - name: Install Haxe libraries
         run: |
           haxelib setup ~/haxelib
-          yes | haxelib install hxcpp
+          yes | haxelib install hxcpp 4.3.2
           yes | haxelib install lime ${{ env.LIME_VERSION }}
           yes | haxelib install openfl ${{ env.OPENFL_VERSION }}
           yes | haxelib install flixel ${{ env.FLIXEL_VERSION }}
           yes | haxelib install flixel-addons ${{ env.FLIXEL_ADDONS_VERSION }}
-          yes | haxelib install flixel-ui
-          yes | haxelib install hscript
+          yes | haxelib install flixel-ui 2.6.5
+          yes | haxelib install hscript 2.7.0
           haxelib list
 
       - name: Configure Lime

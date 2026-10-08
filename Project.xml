@@ -32,6 +32,7 @@
 	<!--Mobile-specific-->
 	<window if="mobile" orientation="landscape" fullscreen="true" width="0" height="0" resizable="false"/>
 	<config:android target-sdk-version="33" minimum-sdk-version="21" if="android" />
+	<architecture exclude="armv7" if="android" />
 	<config:ios deployment="12" if="ios" />
 
 	<!--Switch-specific-->

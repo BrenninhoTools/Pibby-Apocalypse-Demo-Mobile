@@ -383,8 +383,8 @@ class PlayState extends MusicBeatState
 	var storyDifficultyText:String = "";
 	var detailsText:String = "";
 	var detailsPausedText:String = "";
-	private var largeKey: String = "";
 	#end
+	private var largeKey: String = "";
 
 	var touhouBG:FlxSprite;
 	var cnlogo:BGSprite;
