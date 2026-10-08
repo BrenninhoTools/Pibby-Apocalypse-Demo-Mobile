@@ -346,13 +346,13 @@ class MainMenuState extends MusicBeatState
 			if (TouchInput.swipeLeft)
 			{
 				FlxG.sound.play(Paths.sound('scrollMenu'));
-				changeItem(-1);
+				changeItem(1);
 			}
 
 			if (TouchInput.swipeRight)
 			{
 				FlxG.sound.play(Paths.sound('scrollMenu'));
-				changeItem(1);
+				changeItem(-1);
 			}
 
 			if (TouchInput.tapOver(optionsIcon, 20))

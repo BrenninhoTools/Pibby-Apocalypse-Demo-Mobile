@@ -348,6 +348,7 @@ class FreeplayState extends MusicBeatState
 
 		#if mobile
 		TouchInput.verticalNav = false;
+		TouchInput.horizontalNav = false;
 		add(new MobileButton(MobileButtonType.BACK));
 		#end
 
@@ -424,6 +425,13 @@ class FreeplayState extends MusicBeatState
 		var rightP = controls.UI_RIGHT_P;
 
 		#if mobile
+		var swipeSteps:Int = -TouchInput.swipeStepsX;
+		if (swipeSteps != 0 && songs.length > 1)
+		{
+			changeSelection(swipeSteps);
+			holdTime = 0;
+		}
+
 		if (TouchInput.tap)
 		{
 			if (TouchInput.tapX < FlxG.width * 0.2)

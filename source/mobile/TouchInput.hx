@@ -43,6 +43,9 @@ class TouchInput
 	public static var swipeLeft(default, null):Bool = false;
 	public static var swipeRight(default, null):Bool = false;
 
+	public static var swipeStepsX(default, null):Int = 0;
+	public static var swipeStepsY(default, null):Int = 0;
+
 	public static var tap(default, null):Bool = false;
 	public static var tapX(default, null):Float = 0;
 	public static var tapY(default, null):Float = 0;
@@ -101,6 +104,8 @@ class TouchInput
 	public static function poll(elapsed:Float):Void
 	{
 		swipeUp = swipeDown = swipeLeft = swipeRight = false;
+		swipeStepsX = 0;
+		swipeStepsY = 0;
 		tap = false;
 		backPressed = false;
 		pausePressed = false;
@@ -123,6 +128,9 @@ class TouchInput
 				point = new TouchPoint(id, touch.screenX, touch.screenY);
 				point.onButton = pressButtons(point);
 				point.eligible = gameplay && !point.onButton && state != null && state.subState == null;
+				#if TOUCH_DEBUG
+				trace("TOUCHDBG down " + point.x + "," + point.y + " onButton=" + point.onButton + " eligible=" + point.eligible);
+				#end
 				points.push(point);
 			}
 
@@ -141,6 +149,9 @@ class TouchInput
 				if (!point.onButton && gestures && !point.swiped && point.travelled <= TAP_MAX_DISTANCE && point.heldTime <= TAP_MAX_TIME)
 				{
 					tap = true;
+					#if TOUCH_DEBUG
+					trace("TOUCHDBG tap " + point.x + "," + point.y);
+					#end
 					tapX = point.x;
 					tapY = point.y;
 				}
@@ -171,24 +182,35 @@ class TouchInput
 
 		if (absY >= SWIPE_STEP && absY >= absX)
 		{
-			if (dy < 0)
+			var steps:Int = Std.int(absY / SWIPE_STEP);
+			var direction:Int = dy < 0 ? -1 : 1;
+
+			if (direction < 0)
 				swipeUp = true;
 			else
 				swipeDown = true;
 
+			swipeStepsY += direction * steps;
 			point.swiped = true;
 			point.anchorX = point.x;
-			point.anchorY = point.y;
+			point.anchorY += direction * steps * SWIPE_STEP;
 		}
 		else if (absX >= SWIPE_STEP)
 		{
-			if (dx < 0)
+			var steps:Int = Std.int(absX / SWIPE_STEP);
+			var direction:Int = dx < 0 ? -1 : 1;
+
+			if (direction < 0)
 				swipeLeft = true;
 			else
 				swipeRight = true;
 
+			swipeStepsX += direction * steps;
+			#if TOUCH_DEBUG
+			trace("TOUCHDBG swipeX " + (direction * steps));
+			#end
 			point.swiped = true;
-			point.anchorX = point.x;
+			point.anchorX += direction * steps * SWIPE_STEP;
 			point.anchorY = point.y;
 		}
 	}
