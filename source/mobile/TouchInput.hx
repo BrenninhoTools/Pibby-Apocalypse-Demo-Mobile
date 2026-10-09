@@ -78,6 +78,10 @@ class TouchInput
 
 		if (FlxG.plugins.get(TouchInputPlugin) == null)
 			FlxG.plugins.add(new TouchInputPlugin());
+
+		// added after the input plugin so it reads this frame's touch points
+		if (FlxG.plugins.get(TouchCursor) == null)
+			FlxG.plugins.add(new TouchCursor());
 	}
 
 	public static function tapOver(object:FlxObject, padding:Float = 0):Bool

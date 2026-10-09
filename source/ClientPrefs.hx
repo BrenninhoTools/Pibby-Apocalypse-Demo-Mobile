@@ -9,7 +9,7 @@ import Controls;
 class ClientPrefs {
 	public static var downScroll:Bool = #if mobile true #else false #end;
 	public static var middleScroll:Bool = #if mobile true #else false #end;
-	public static var opponentStrums:Bool = true;
+	public static var opponentStrums:Bool = #if mobile false #else true #end;
 	public static var showFPS:Bool = #if mobile false #else true #end;
 	public static var flashing:Bool = true;
 	public static var globalAntialiasing:Bool = true;
@@ -302,6 +302,13 @@ class ClientPrefs {
 			useGPUCaching = FlxG.save.data.useGPUCaching;
 
 		#if mobile
+		// opponent notes start hidden on mobile. Saves from before this still have it on, so turn it off once
+		// (it can still be switched on in the options afterwards)
+		if (FlxG.save.data.opponentStrumsMobileDefault == null)
+		{
+			opponentStrums = false;
+			FlxG.save.data.opponentStrumsMobileDefault = true;
+		}
 		downScroll = true;
 		middleScroll = true;
 		showFPS = false;

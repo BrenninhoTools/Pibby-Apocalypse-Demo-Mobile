@@ -2545,7 +2545,8 @@ class PlayState extends MusicBeatState
 					onComplete: 
 					function (twn:FlxTween)
 						{
-							babyArrow.alpha = 1;
+							// was always 1, which showed the opponent strums even with Opponent Notes off
+							babyArrow.alpha = targetAlpha;
 						}});
 			}
 			else
@@ -2571,6 +2572,13 @@ class PlayState extends MusicBeatState
 
 			strumLineNotes.add(babyArrow);
 			babyArrow.postAddedToGroup();
+
+			#if mobile
+			// player's strums go across the bottom, centered on the screen and inside their own touch column
+			// (see MobileHitbox), the notes follow the strum's x so they line up too
+			if (player == 1)
+				babyArrow.x = FlxG.width / 2 + (i - (MobileHitbox.COLUMNS - 1) / 2) * MobileHitbox.STRUM_SPACING - babyArrow.width / 2;
+			#end
 		}
 	}
 
@@ -3289,6 +3297,10 @@ class PlayState extends MusicBeatState
 			}
 		}
 		checkEventNote();
+
+		// song events fade the opponent strums in and out on their own, keep them hidden if the option is off
+		if (!ClientPrefs.opponentStrums)
+			opponentStrums.forEachAlive(function(strum:StrumNote) strum.visible = false);
 
 		if(Main.debug){
             if(!endingSong && !startingSong) {

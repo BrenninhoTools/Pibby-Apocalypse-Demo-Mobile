@@ -13,7 +13,8 @@ class MobileButton extends FlxSprite
 {
 	public static inline var MARGIN:Float = 16;
 	public static inline var HIT_PADDING:Float = 40;
-	public static inline var SIZE:Float = 230;
+	public static inline var BACK_SIZE:Float = 230;
+	public static inline var PAUSE_SIZE:Float = 110;
 
 	public var type(default, null):MobileButtonType;
 	public var inSubState(default, null):Bool;
@@ -41,7 +42,7 @@ class MobileButton extends FlxSprite
 		antialiasing = ClientPrefs.globalAntialiasing;
 		scrollFactor.set(0, 0);
 
-		var factor:Float = SIZE / frameWidth;
+		var factor:Float = (type == PAUSE ? PAUSE_SIZE : BACK_SIZE) / frameWidth;
 		scale.set(factor, factor);
 		updateHitbox();
 

@@ -64,7 +64,9 @@ class Note extends FlxSprite
 	public var lateHitMult:Float = 1;
 	public var lowPriority:Bool = false;
 
-	public static var swagWidth:Float = 160 * 0.7;
+	// notes and strums are drawn at this scale, bigger on mobile so they're easier to see and hit
+	public static var noteScale:Float = #if mobile 0.85 #else 0.7 #end;
+	public static var swagWidth:Float = 160 * noteScale;
 	
 	private var colArray:Array<String> = ['purple', 'blue', 'green', 'red'];
 	private var pixelInt:Array<Int> = [0, 1, 2, 3];
@@ -377,7 +379,7 @@ class Note extends FlxSprite
 			animation.addByPrefix(colArray[noteData] + 'hold', colArray[noteData] + ' hold piece');
 		}
 
-		setGraphicSize(Std.int(width * 0.7));
+		setGraphicSize(Std.int(width * noteScale));
 		updateHitbox();
 	}
 

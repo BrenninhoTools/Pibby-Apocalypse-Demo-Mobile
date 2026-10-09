@@ -31,6 +31,11 @@ import flixel.input.mouse.FlxMouseEvent;
 
 import flixel.ui.FlxBar;
 
+#if mobile
+import mobile.MobileButton;
+import mobile.TouchInput;
+#end
+
 using StringTools;
 
 // CreditsData: name, icon, description, youtube, twitter, quote, role
@@ -60,6 +65,9 @@ class PACreditsState extends MusicBeatState
 	var creditSpr:FlxSprite;
 
 	var creditBar:FlxBar; // this is to show how close you are to the end lol
+
+	var twitter:FlxSprite;
+	var youtube:FlxSprite;
 
 	function getCreditJson(path:String):CreditsData {
 		var json:String = null;
@@ -132,6 +140,7 @@ class PACreditsState extends MusicBeatState
 		creditSpr.y -= 800;
 		creditSpr.alpha = 0.6;
 
+		#if !mobile
 		FlxMouseEvent.add(creditSpr, function(spr:FlxSprite) {
 			spr.scale.x += 0.04;
 			spr.scale.y = spr.scale.x; // so it doesnt fuck up
@@ -140,10 +149,12 @@ class PACreditsState extends MusicBeatState
 		}, function(spr:FlxSprite) {
 			FlxTween.tween(spr, {alpha: 0.6}, 0.25);
 		});
+		#end
 
-		var twitter:FlxSprite = new FlxSprite(0, 0, Paths.image('pacredits/twitter'));
+		twitter = new FlxSprite(0, 0, Paths.image('pacredits/twitter'));
 		add(twitter);
 		twitter.alpha = 0.6;
+		#if !mobile
 		FlxMouseEvent.add(twitter, function(spr:FlxSprite) {
 			CoolUtil.browserLoad('https://' + people[curSelected][4]);
 		}, null, function(spr:FlxSprite) {
@@ -151,10 +162,12 @@ class PACreditsState extends MusicBeatState
 		}, function(spr:FlxSprite) {
 			FlxTween.tween(spr, {alpha: 0.6}, 0.25);
 		});
+		#end
 
-		var youtube:FlxSprite = new FlxSprite(0, 0, Paths.image('pacredits/youtube'));
+		youtube = new FlxSprite(0, 0, Paths.image('pacredits/youtube'));
 		add(youtube);
 		youtube.alpha = 0.6;
+		#if !mobile
 		FlxMouseEvent.add(youtube, function(spr:FlxSprite) {
 			CoolUtil.browserLoad('https://' + people[curSelected][3]);
 		}, null, function(spr:FlxSprite) {
@@ -162,6 +175,7 @@ class PACreditsState extends MusicBeatState
 		}, function(spr:FlxSprite) {
 			FlxTween.tween(spr, {alpha: 0.6}, 0.25);
 		});
+		#end
 
 		twitter.scale.x = 0.3;
 		twitter.scale.y = 0.3;
@@ -209,6 +223,13 @@ class PACreditsState extends MusicBeatState
 		dogeTxt.antialiasing = ClientPrefs.globalAntialiasing;
 		add(dogeTxt);
 
+		#if mobile
+		// swipes are handled in update (left/right change the person), the back button is bottom right like the other menus
+		TouchInput.horizontalNav = false;
+		TouchInput.verticalNav = false;
+		add(new MobileButton(MobileButtonType.BACK));
+		#end
+
 		FlxTween.tween(dogeTxt, {alpha: 1}, 1.5, {
 			ease: FlxEase.quadInOut, 
 			startDelay: 2,
@@ -230,6 +251,28 @@ class PACreditsState extends MusicBeatState
 	var holdTime:Float = 0;
 	override function update(elapsed:Float)
 	{
+		#if mobile
+		var backTapped:Bool = TouchInput.tapOver(creditsText, 20);
+
+		// swipe left = next person, swipe right = previous
+		var swipeSteps:Int = -TouchInput.swipeStepsX;
+		if (swipeSteps != 0)
+		{
+			changeSelection(swipeSteps);
+			FlxG.sound.play(Paths.sound('scrollMenu'));
+		}
+
+		if (TouchInput.tapOver(twitter, 20))
+			CoolUtil.browserLoad('https://' + people[curSelected][4]);
+		else if (TouchInput.tapOver(youtube, 20))
+			CoolUtil.browserLoad('https://' + people[curSelected][3]);
+		else if (TouchInput.tapOver(creditSpr))
+		{
+			creditSpr.scale.x += 0.04;
+			creditSpr.scale.y = creditSpr.scale.x;
+		}
+		#end
+
 		creditSpr.loadGraphic(Paths.returnGraphic('pacreditarts/' + people[curSelected][1] + FlxG.random.int(1, 2), null, true));
 
 		if (FlxG.random.int(0, 1) < 0.01) 
@@ -247,7 +290,7 @@ class PACreditsState extends MusicBeatState
 			FlxG.sound.music.volume += 0.5 * FlxG.elapsed;
 		}
 
-			if (controls.BACK)
+			if (controls.BACK #if mobile || backTapped #end)
 			{
 				FlxG.sound.play(Paths.sound('cancelMenu'));
 				MusicBeatState.switchState(new MainMenuState());

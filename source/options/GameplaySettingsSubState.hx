@@ -62,7 +62,7 @@ class GameplaySettingsSubState extends BaseOptionsMenu
 			'If unchecked, opponent notes get hidden.',
 			'opponentStrums',
 			'bool',
-			true);
+			#if mobile false #else true #end);
 		addOption(option);
 
 		var option:Option = new Option('Ghost Tapping',

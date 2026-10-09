@@ -8,6 +8,9 @@ class MobileHitbox extends FlxBasic
 {
 	public static inline var COLUMNS:Int = 4;
 
+	// distance between the centers of the player's strums (a touch column is FlxG.width / COLUMNS wide, so they stay inside their column)
+	public static inline var STRUM_SPACING:Float = 250;
+
 	public var enabled:Bool = false;
 	public var held(default, null):Array<Bool> = [];
 
