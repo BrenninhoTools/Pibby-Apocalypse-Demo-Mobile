@@ -523,7 +523,13 @@ class Paths
 			var folder:String = '';
 			if(path == 'songs') folder = 'songs:';
 
-			currentTrackedSounds.set(gottenPath, OpenFlAssets.getSound(folder + getPath('$path/$key.$SOUND_EXT', SOUND, library)));
+			// getSound throws on a missing id, desktop (Sound.fromFile) just gets null, so do the same here
+			var soundId:String = folder + getPath('$path/$key.$SOUND_EXT', SOUND, library);
+			if (!OpenFlAssets.exists(soundId, SOUND)) {
+				trace('Missing sound: $soundId');
+				return null;
+			}
+			currentTrackedSounds.set(gottenPath, OpenFlAssets.getSound(soundId));
 		}
 		#end
 		localTrackedAssets.push(gottenPath);

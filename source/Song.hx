@@ -103,7 +103,11 @@ class Song
 			rawJson = Paths.getContent(Paths.json(formattedFolder + '/' + formattedSong)).trim();
 		}
 
-		while (!rawJson.endsWith("}"))
+		// a missing chart gives an empty string, which would make the loop below spin forever
+		if (rawJson == null || rawJson.length == 0)
+			throw 'Chart not found: ' + Paths.json(formattedFolder + '/' + formattedSong);
+
+		while (rawJson.length > 0 && !rawJson.endsWith("}"))
 		{
 			rawJson = rawJson.substr(0, rawJson.length - 1);
 			// LOL GOING THROUGH THE BULLSHIT TO CLEAN IDK WHATS STRANGE

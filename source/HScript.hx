@@ -176,10 +176,13 @@ class ScriptManager {
 	
 	public static function loadScript(path : String, ?library : String, ?additionalParamaters : StringMap<Dynamic>):Script {
 		var newScript : Script = null;
-		if (FileSystem.exists(path)) {
+		// getContent reads from the file system and falls back to the packed assets (that's all there is on mobile)
+		var content : String = Paths.getContent(path);
+		if (content != null) {
 			trace('Currently loading script path ${path}');
-			try { scriptParser.parseString(File.getContent(path), path); } catch( e : Dynamic ) { trace(e); return null; }
-			newScript = new Script(scriptParser.parseString(File.getContent(path), path), additionalParamaters);
+			var expr : Expr = null;
+			try { expr = scriptParser.parseString(content, path); } catch( e : Dynamic ) { trace(e); return null; }
+			newScript = new Script(expr, additionalParamaters);
 			return newScript;
 		} else {
 			trace('The path ${path}, is not a valid path');
