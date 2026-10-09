@@ -1151,6 +1151,7 @@ class PlayState extends MusicBeatState
 
 		#if mobile
 		mobileHitbox = new MobileHitbox(pressKey, releaseKey);
+		mobileHitbox.strums = playerStrums;
 		mobileHitbox.cameras = [camMobile];
 		add(mobileHitbox);
 

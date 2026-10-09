@@ -96,6 +96,10 @@ class Main extends Sprite
 		var stageWidth:Int = Lib.current.stage.stageWidth;
 		var stageHeight:Int = Lib.current.stage.stageHeight;
 
+		// Phones come in every shape (16:9, 18:9, 20:9, tablets...). The menus, stages and songs are all laid out
+		// for 1280x720, so on mobile the game stays at exactly that and Flixel's RatioScaleMode (its default) scales
+		// it to fit the screen and centers it, with black bars on the sides/top instead of a different game size.
+		#if !mobile
 		if (zoom == -1)
 		{
 			var ratioX:Float = stageWidth / gameWidth;
@@ -104,6 +108,7 @@ class Main extends Sprite
 			gameWidth = Math.ceil(stageWidth / zoom);
 			gameHeight = Math.ceil(stageHeight / zoom);
 		}
+		#end
 	
 		ClientPrefs.loadDefaultKeys();
 		ClientPrefs.getGameplaySetting('botplay', false);

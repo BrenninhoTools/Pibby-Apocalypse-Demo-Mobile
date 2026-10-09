@@ -189,11 +189,33 @@ class PACreditsState extends MusicBeatState
 		youtube.setPosition(150, FlxG.height - 130);
 		twitter.setPosition(youtube.x - youtube.width, youtube.y);
 
+		#if mobile
+		// bigger link icons so they're easy to tap, no hover on touch so no dimming either
+		var iconSize:Float = 110;
+		twitter.scale.set(iconSize / twitter.frameWidth, iconSize / twitter.frameWidth);
+		youtube.scale.set(iconSize / youtube.frameWidth, iconSize / youtube.frameWidth);
+		twitter.updateHitbox();
+		youtube.updateHitbox();
+		twitter.setPosition(40, FlxG.height - iconSize - 40);
+		youtube.setPosition(twitter.x + twitter.width + 24, twitter.y);
+		twitter.alpha = youtube.alpha = 0.9;
+
+		// readable on a phone, and wrapped so it stays left of the portrait
+		quoteText.size = 24;
+		quoteText.fieldWidth = 780;
+
+		// every portrait is ~5.7 MB as RGBA and there are ~70 of them, loading them all took ages and ate the RAM.
+		// Only the current person and the two next to it are loaded, the rest come in when you swipe to them.
+		preloadPerson(curSelected);
+		preloadPerson(curSelected + 1);
+		preloadPerson(curSelected - 1);
+		#else
 		for (person in people)
 			{
 				Paths.returnGraphic('pacreditarts/' + person[1] + 1, null, true);
 				Paths.returnGraphic('pacreditarts/' + person[1] + 2, null, true);
 			}
+		#end
 
 		super.create();
 
@@ -316,13 +338,24 @@ class PACreditsState extends MusicBeatState
 
 	var targetY:Float;
 
+	#if mobile
+	function preloadPerson(index:Int) {
+		index = (index % people.length + people.length) % people.length;
+		Paths.returnGraphic('pacreditarts/' + people[index][1] + 1, null, true);
+		Paths.returnGraphic('pacreditarts/' + people[index][1] + 2, null, true);
+	}
+	#end
+
 	function changeSelection(thing:Int) {
 		curSelected += thing;
 
-		if (curSelected < 0)
-			curSelected = people.length - 1;
-		if (curSelected >= people.length)
-			curSelected = 0;
+		// modulo so a swipe of several steps wraps around properly (the old ifs only handled +-1)
+		curSelected = (curSelected % people.length + people.length) % people.length;
+
+		#if mobile
+		preloadPerson(curSelected + 1);
+		preloadPerson(curSelected - 1);
+		#end
 
 		if (people != null) {
 			quoteText.text = people[curSelected][0] + ' - ' + people[curSelected][2] + '\n"' + people[curSelected][5] + '"';
