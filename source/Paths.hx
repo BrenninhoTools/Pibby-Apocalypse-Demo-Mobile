@@ -308,6 +308,16 @@ class Paths
 		if(OpenFlAssets.exists(getPath(key, type))) {
 			return true;
 		}
+
+		#if ASTC_TEXTURES
+		// the pngs are replaced by .astc files in mobile builds
+		if (type == IMAGE && key.endsWith('.png')) {
+			var astcKey = key.substr(0, key.length - 4) + '.astc';
+			if (OpenFlAssets.exists(getPath(astcKey, BINARY))) {
+				return true;
+			}
+		}
+		#end
 		return false;
 	}
 
@@ -393,6 +403,15 @@ class Paths
 		var path = getPath('$prefix/$key.png', IMAGE, library);
         var bitmap:BitmapData = null;
 
+		#if ASTC_TEXTURES
+		// the .astc replaces the .png, and it's the one that should be the cache key
+		var pngPath = path;
+		var astcPath = getPath('$prefix/$key.astc', BINARY, library);
+		var fromAstc = AstcTexture.supported && OpenFlAssets.exists(astcPath, BINARY);
+		if (fromAstc)
+			path = astcPath;
+		#end
+
         if(currentTrackedAssets.exists(path)){
 			if (throwToGPU && !uniqueVRMImages.contains(path)){
 				if (!localTrackedAssets.contains(path) && !dumpExclusions.contains(path))
@@ -416,10 +435,34 @@ class Paths
             }
         }
         
+		#if ASTC_TEXTURES
+		if (fromAstc)
+		{
+			bitmap = AstcTexture.load(Assets.getBytes(path));
+			if (bitmap == null) // bad file, try the png (if it shipped)
+			{
+				fromAstc = false;
+				path = pngPath;
+				trace('ASTC failed for $astcPath');
+			}
+		}
+		#end
+
+		#if ASTC_TEXTURES
+		if (bitmap == null)
+		#end
         if(OpenFlAssets.exists(path, IMAGE))
 			bitmap = OpenFlAssets.getBitmapData(path);
-        
+
         if(bitmap != null){
+			#if ASTC_TEXTURES
+			if (fromAstc) // already on the GPU
+			{
+				if (!uniqueVRMImages.contains(path))uniqueVRMImages.push(path);
+				uniqueRAMImages.remove(path);
+			}
+			else
+			#end
             if(throwToGPU){
 				// based on what smokey learnt + my own research
 				// should be fine? idk lole

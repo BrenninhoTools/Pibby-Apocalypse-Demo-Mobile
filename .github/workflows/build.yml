@@ -17,6 +17,9 @@ env:
   OPENFL_VERSION: 9.5.2
   FLIXEL_VERSION: 5.2.2
   FLIXEL_ADDONS_VERSION: 3.0.2
+  ASTCENC_VERSION: 5.7.0
+  ASTCENC_LINUX_SHA256: 6c6b299b17608e1ee74db9c491cdc793b12b2b104a4b52222e358d78ae0662a9
+  ASTCENC_MACOS_SHA256: 374b2f0aea1d3ab5f849784666d6ece6e27b4bc1f945e5c90d6eeabf00e955f8
 
 jobs:
   android:
@@ -80,6 +83,23 @@ jobs:
           haxelib run lime config JAVA_PATH "$JAVA_HOME"
           haxelib run lime config ANDROID_SETUP true
 
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      # PNGs -> GPU-compressed .astc; the game uploads them to the GPU without decoding to RAM.
+      # --delete-png keeps the APK from carrying both copies (this checkout is thrown away anyway).
+      - name: Convert textures to ASTC
+        run: |
+          curl -fsSL -o astcenc.zip "https://github.com/ARM-software/astc-encoder/releases/download/${ASTCENC_VERSION}/astcenc-${ASTCENC_VERSION}-linux-x64.zip"
+          echo "${ASTCENC_LINUX_SHA256}  astcenc.zip" | sha256sum -c -
+          unzip -q astcenc.zip -d astcenc
+          chmod +x astcenc/bin/*
+          ENC=astcenc/bin/astcenc-avx2
+          "$ENC" -version > /dev/null 2>&1 || ENC=astcenc/bin/astcenc-sse4.1
+          node tools/convert_astc.mjs --astcenc "$PWD/$ENC" --delete-png
+
       - name: Build
         run: haxelib run lime build android -final
 
@@ -117,6 +137,19 @@ jobs:
 
       - name: Configure Lime
         run: haxelib run lime setup -y
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Convert textures to ASTC
+        run: |
+          curl -fsSL -o astcenc.zip "https://github.com/ARM-software/astc-encoder/releases/download/${ASTCENC_VERSION}/astcenc-${ASTCENC_VERSION}-macos-universal.zip"
+          echo "${ASTCENC_MACOS_SHA256}  astcenc.zip" | shasum -a 256 -c -
+          unzip -q astcenc.zip -d astcenc
+          chmod +x astcenc/bin/*
+          node tools/convert_astc.mjs --astcenc "$PWD/astcenc/bin/astcenc" --delete-png
 
       - name: Build
         run: haxelib run lime build ios -nosign -final
