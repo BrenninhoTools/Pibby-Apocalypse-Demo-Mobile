@@ -98,7 +98,8 @@ jobs:
           ENC=$(find astcenc-src/build -type f -name astcenc-avx2 | head -n 1)
           "$ENC" -version > /dev/null 2>&1 || ENC=$(find astcenc-src/build -type f -name astcenc-sse4.1 | head -n 1)
           "$ENC" -version | head -n 1
-          node tools/convert_astc.mjs --astcenc "$PWD/$ENC" --delete-png
+          # PNGs are kept as the fallback while this is being tested on emulators; add --delete-png to ship ASTC only
+          node tools/convert_astc.mjs --astcenc "$PWD/$ENC"
 
       - name: Build
         run: haxelib run lime build android -final
