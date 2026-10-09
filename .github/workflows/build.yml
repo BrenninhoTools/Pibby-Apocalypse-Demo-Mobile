@@ -17,8 +17,6 @@ env:
   OPENFL_VERSION: 9.5.2
   FLIXEL_VERSION: 5.2.2
   FLIXEL_ADDONS_VERSION: 3.0.2
-  ASTCENC_VERSION: 5.7.0
-  ASTCENC_MACOS_SHA256: 374b2f0aea1d3ab5f849784666d6ece6e27b4bc1f945e5c90d6eeabf00e955f8
 
 jobs:
   android:
@@ -82,25 +80,6 @@ jobs:
           haxelib run lime config JAVA_PATH "$JAVA_HOME"
           haxelib run lime config ANDROID_SETUP true
 
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-
-      # PNGs -> GPU-compressed .astc; the game uploads them to the GPU without decoding to RAM.
-      # --delete-png keeps the APK from carrying both copies (this checkout is thrown away anyway).
-      - name: Convert textures to ASTC
-        run: |
-          # the prebuilt astcenc needs a newer glibc than ubuntu-22.04 has, so build it
-          git clone --quiet --depth 1 --branch "${ASTCENC_VERSION}" https://github.com/ARM-software/astc-encoder.git astcenc-src
-          cmake -S astcenc-src -B astcenc-src/build -DCMAKE_BUILD_TYPE=Release -DASTCENC_CLI=ON -DASTCENC_ISA_AVX2=ON -DASTCENC_ISA_SSE41=ON
-          cmake --build astcenc-src/build --parallel
-          ENC=$(find astcenc-src/build -type f -name astcenc-avx2 | head -n 1)
-          "$ENC" -version > /dev/null 2>&1 || ENC=$(find astcenc-src/build -type f -name astcenc-sse4.1 | head -n 1)
-          "$ENC" -version | head -n 1
-          # PNGs are kept as the fallback while this is being tested on emulators; add --delete-png to ship ASTC only
-          node tools/convert_astc.mjs --astcenc "$PWD/$ENC"
-
       - name: Build
         run: haxelib run lime build android -final
 
@@ -118,10 +97,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
-      # setup-haxe's haxelib can't find libneko.2.dylib unless it's in /usr/local/lib (where brew puts it)
-      - name: Install Neko
-        run: brew install neko
 
       - name: Setup Haxe
         uses: krdlab/setup-haxe@v1
@@ -142,19 +117,6 @@ jobs:
 
       - name: Configure Lime
         run: haxelib run lime setup -y
-
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-
-      - name: Convert textures to ASTC
-        run: |
-          curl -fsSL -o astcenc.zip "https://github.com/ARM-software/astc-encoder/releases/download/${ASTCENC_VERSION}/astcenc-${ASTCENC_VERSION}-macos-universal.zip"
-          echo "${ASTCENC_MACOS_SHA256}  astcenc.zip" | shasum -a 256 -c -
-          unzip -q astcenc.zip -d astcenc
-          chmod +x astcenc/bin/*
-          node tools/convert_astc.mjs --astcenc "$PWD/astcenc/bin/astcenc" --delete-png
 
       - name: Build
         run: haxelib run lime build ios -nosign -final
