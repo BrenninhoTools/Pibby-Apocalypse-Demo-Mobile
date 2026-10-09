@@ -112,7 +112,7 @@ jobs:
           echo "$PWD/neko" >> "$GITHUB_PATH"
           echo "HAXE_STD_PATH=$PWD/haxe/std" >> "$GITHUB_ENV"
           echo "NEKOPATH=$PWD/neko" >> "$GITHUB_ENV"
-          export PATH="$PWD/haxe:$PWD/neko:$PATH"
+          export PATH="$PWD/haxe:$PWD/neko:$PATH" NEKOPATH="$PWD/neko" HAXE_STD_PATH="$PWD/haxe/std"
           haxe --version
           haxelib --version
 
