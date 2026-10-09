@@ -163,9 +163,14 @@ class LoadingState extends MusicBeatState
 		trace('Setting asset folder to ' + directory);
 
 		var loaded:Bool = false;
+		// getSongPath/getVocalPath decode the whole Inst/Voices ogg on the main thread, which froze the screen
+		// for seconds when pressing accept on phones. This check is always false anyway (it gets a Sound, not a path),
+		// so mobile skips it and PlayState decodes the songs behind the loading screen instead.
+		#if !mobile
 		if (PlayState.SONG != null) {
 			loaded = isSoundLoaded(getSongPath()) && (!PlayState.SONG.needsVoices || isSoundLoaded(getVocalPath())) && isLibraryLoaded("shared") && isLibraryLoaded(directory);
 		}
+		#end
 		
 		if (!loaded)
 			return new LoadingState(target, stopMusic, directory);
