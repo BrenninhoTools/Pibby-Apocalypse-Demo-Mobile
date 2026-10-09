@@ -98,10 +98,23 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      # krdlab/setup-haxe fails here: the haxelib in Haxe's macOS build only looks for libneko.2.dylib in
+      # /usr/local/lib, and the action runs `haxelib setup` before we can put it there. So install by hand.
       - name: Setup Haxe
-        uses: krdlab/setup-haxe@v1
-        with:
-          haxe-version: ${{ env.HAXE_VERSION }}
+        run: |
+          mkdir -p "$HOME/haxe-install" && cd "$HOME/haxe-install"
+          mkdir neko haxe
+          curl -fsSL "https://github.com/HaxeFoundation/neko/releases/download/v2-3-0/neko-2.3.0-osx64.tar.gz" | tar xz -C neko --strip-components=1
+          curl -fsSL "https://github.com/HaxeFoundation/haxe/releases/download/${HAXE_VERSION}/haxe-${HAXE_VERSION}-osx.tar.gz" | tar xz -C haxe --strip-components=1
+          sudo mkdir -p /usr/local/lib
+          sudo ln -sf "$PWD/neko/libneko.2.dylib" /usr/local/lib/libneko.2.dylib
+          echo "$PWD/haxe" >> "$GITHUB_PATH"
+          echo "$PWD/neko" >> "$GITHUB_PATH"
+          echo "HAXE_STD_PATH=$PWD/haxe/std" >> "$GITHUB_ENV"
+          echo "NEKOPATH=$PWD/neko" >> "$GITHUB_ENV"
+          export PATH="$PWD/haxe:$PWD/neko:$PATH"
+          haxe --version
+          haxelib --version
 
       - name: Install Haxe libraries
         run: |
