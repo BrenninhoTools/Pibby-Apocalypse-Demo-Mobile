@@ -3298,9 +3298,16 @@ class PlayState extends MusicBeatState
 		}
 		checkEventNote();
 
-		// song events fade the opponent strums in and out on their own, keep them hidden if the option is off
+		// song events fade the opponent strums in and out on their own, keep them (and their notes and sustains)
+		// hidden if the option is off. They still get hit as usual, they're just not drawn.
 		if (!ClientPrefs.opponentStrums)
+		{
 			opponentStrums.forEachAlive(function(strum:StrumNote) strum.visible = false);
+			notes.forEachAlive(function(note:Note) {
+				if (!note.mustPress)
+					note.visible = false;
+			});
+		}
 
 		if(Main.debug){
             if(!endingSong && !startingSong) {
