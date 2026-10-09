@@ -53,10 +53,6 @@
 	<define name="PSYCH_WATERMARKS"/> <!-- DELETE THIS TO REMOVE WATERMARKS/DEV NAMES ON TITLE SCREEN -->
 	<define name="CRASH_HANDLER" if="desktop release" />
 
-	<!-- Mobile loads GPU-compressed .astc textures (made by tools/convert_astc.py) instead of decoding pngs into RAM.
-		 Falls back to the png if the GPU can't do ASTC or there's no .astc. Build with -DNO_ASTC to turn it off. -->
-	<define name="ASTC_TEXTURES" if="mobile" unless="NO_ASTC" />
-
 	<assets path="assets/preload" rename="assets" exclude="*.ogg" if="web"/>
 	<assets path="assets/preload" rename="assets" exclude="*.mp3"  unless="web"/>
 	<section if="TITLE_SCREEN_EASTER_EGG">
